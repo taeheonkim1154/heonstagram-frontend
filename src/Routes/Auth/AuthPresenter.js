@@ -1,4 +1,5 @@
 import React from "react";
+import {Helmet} from "react-helmet";
 import styled from "styled-components";
 import Input from "../../Components/Input";
 import Button from "../../Components/Button";
@@ -46,30 +47,54 @@ const Link = styled.span`
 `;
 
 
-export default ({action, setAction, username, firstName, lastName, email, onSubmit}) => (
+export default ({action, setAction, username, firstName, lastName, email, secret, onSubmit}) => (
     <Wrapper>
         <Form>
-            {action === "logIn" ? (
-                <form onSubmit={onSubmit}>
-                    <Input placeholder={"Email"} {...email} type="email"/>
-                    <Button text={"Log in"}/>
-                </form>
-            ) : (
-                <form onSubmit={onSubmit}>
-                    <Input placeholder={"First name"} {...firstName}/>
-                    <Input placeholder={"Last name"} {...lastName}/>
-                    <Input placeholder={"Email"} {...email} type="email"/>
-                    <Input placeholder={"Username"} {...username}/>
-                    <Button text={"Sign up"}/>
-                </form>
+            {action === "logIn" && (
+                <>
+                    <Helmet>
+                        <title>Log In | Heonstagram</title>
+                    </Helmet>
+                    <form onSubmit={onSubmit}>
+                        <Input placeholder={"Email"} {...email} type="email"/>
+                        <Button text={"Log in"}/>
+                    </form>
+                </>
+            )}
+            {action === "signUp" && (
+                <>
+                    <Helmet>
+                        <title>Sign Up | Heonstagram</title>
+                    </Helmet>
+                    <form onSubmit={onSubmit}>
+                        <Input placeholder={"First name"} {...firstName}/>
+                        <Input placeholder={"Last name"} {...lastName}/>
+                        <Input placeholder={"Email"} {...email} type="email"/>
+                        <Input placeholder={"Username"} {...username}/>
+                        <Button text={"Sign up"}/>
+                    </form>
+                </>
+            )}
+            {action === "confirm" && (
+                <>
+                    <Helmet>
+                        <title>Confirm Secret | Heonstagram</title>
+                    </Helmet>
+                    <form onSubmit={onSubmit}>
+                        <Input placeholder={"Paste your secret"} required {...secret} />
+                        <Button text={"confirm"}/>
+                    </form>
+                </>
             )}
         </Form>
-        <StateChanger>
-            {action === "logIn" ? (
-                <>Don't have an account?{" "}<Link onClick={()=>setAction("signUp")}>Sign up</Link></>
-            ) : (
-                <>Have an account?{" "}<Link onClick={()=> setAction("logIn")}>Log in</Link></>
-            )}
-        </StateChanger>
+        {action !== "confirm" && (
+            <StateChanger>
+                {action === "logIn" ? (
+                    <>Don't have an account?{" "}<Link onClick={()=>setAction("signUp")}>Sign up</Link></>
+                ) : (
+                    <>Have an account?{" "}<Link onClick={()=> setAction("logIn")}>Log in</Link></>
+                )}
+            </StateChanger>
+        )}
     </Wrapper>
 );

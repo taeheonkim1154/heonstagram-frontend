@@ -4,7 +4,7 @@ import React, {useState} from "react";
 import {useMutation} from "react-apollo-hooks";
 import AuthPresenter from "./AuthPresenter";
 import useInput from "../../Hooks/useInput";
-import { LOG_IN, CREATE_ACCOUNT } from "./AuthQueries";
+import { LOG_IN, CREATE_ACCOUNT, CONFIRM_SECRET, LOCAL_LOG_IN } from "./AuthQueries";
 import { toast } from "react-toastify";
 
 
@@ -14,14 +14,15 @@ export default () => {
     const username = useInput("");
     const firstName = useInput("");
     const lastName = useInput("");
-    const email = useInput("top1kth98@gmail.com");
+    const secret = useInput("");
+    const email = useInput("");
 
     // AuthQueries.js에서 만든 mutation 사용하는 방법 (react-apollo-hooks docs에서 검색 가능!)
-    const requestSecretMutation = useMutation(LOG_IN, {
+    const [requestSecretMutation, {loading}] = useMutation(LOG_IN, {
         variables: {email: email.value}
     });
 
-    const createAcountMutation = useMutation(CREATE_ACCOUNT, {
+    const [createAccountMutation, {loading1}] = useMutation(CREATE_ACCOUNT, {
         variables: {
             email: email.value,
             username: username.value,
@@ -29,6 +30,15 @@ export default () => {
             lastName: lastName.value
         }
     });
+
+    const [confirmSecretMutation ,{loading2}] = useMutation(CONFIRM_SECRET, {
+        variables: {
+            email: email.value,
+            secret: secret.value
+        }
+    });
+
+    const [localLogInMutation, {loading3}] = useMutation(LOCAL_LOG_IN);
 
     // 로그인 버튼 눌러도 새로고침 안되도록 하는 기능
     const onSubmit = async(e) => {
@@ -43,6 +53,7 @@ export default () => {
                         setTimeout(() => setAction("signUp"), 3000);
                     } else {
                         toast.success("Check your inbox for your login secret");
+                        setAction("confirm");
                     }
                 } catch {
                     toast.error("Can't request secret, try again");
@@ -57,7 +68,7 @@ export default () => {
                 lastName.value !== ""
             ){
                 try {
-                    const {data: {createAccount}} = await createAcountMutation();
+                    const {data: {createAccount}} = await createAccountMutation();
                     if(!createAccount){
                         toast.error("Can't create account");
                     } else {
@@ -70,8 +81,23 @@ export default () => {
             } else {
                 toast.error("All fields are required");
             }
+        } else if(action === "confirm"){
+            if(secret.value !== ""){
+                try {
+                    const {data: {confirmSecret : token}} = await confirmSecretMutation();
+                    // secret이 일치하면, token 얻게 됨!
+                    if (token !== "" && token !== undefined){
+                        localLogInMutation({ variables: {token}});
+                    } else {
+                        throw Error();
+                    }
+                    //이 부분에 로그인 파트 넣기!!
+                } catch {
+                    toast.error("Can't confirm secret");
+                }
+            }
         }
     };
 
-    return <AuthPresenter setAction={setAction} action={action} username={username} firstName={firstName} lastName={lastName} email={email} onSubmit={onSubmit}/>;
+    return <AuthPresenter setAction={setAction} action={action} username={username} firstName={firstName} lastName={lastName} email={email} secret={secret} onSubmit={onSubmit}/>;
 };
